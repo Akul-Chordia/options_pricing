@@ -44,3 +44,53 @@ void black_scholes(float spot_price, float strike_price, float time_to_expiratio
     *call_price = (spot_price*ncdf(d1)) - (ncdf(d2)*strike_price*exp(-risk_free_rate*time_to_expiration));
     *put_price = (ncdf(-d2)*strike_price*exp(-risk_free_rate*time_to_expiration)) - (spot_price*ncdf(-d1));
 }
+
+void heatmap(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility){
+    float temp_spot_price, temp_volatility, call_price, put_price;
+    cout << "\nCall Option Prices:\n";
+    vector<float> put_prices;
+    put_prices.reserve(11 * 11);
+    
+    cout << setw(12) << "Spot Price" << " | ";
+    for (int j = 80; j <= 120; j += 4) {
+        cout << setw(8) << j << "   ";
+    }
+    cout << endl << string(140, '-');
+    cout << endl << setw(12) << "Volatility" << " | " << endl;
+
+    for (int i = -20; i <= 20; i += 4) {
+        temp_volatility = volatility + (i * 0.01);
+        cout << fixed << setprecision(2);
+        cout << setw(12) << temp_volatility << " | ";
+        cout << fixed << setprecision(4);
+        for (int j = 80; j <= 120; j += 4) {
+            temp_spot_price = spot_price * (j * 0.01);
+            black_scholes(temp_spot_price, strike_price, time_to_expiration, risk_free_rate, temp_volatility, &call_price, &put_price);
+            put_prices.push_back(put_price);
+            cout << setw(10) << call_price << " ";
+        }
+        cout << endl;
+    }
+    
+    cout << "\nPut Option Prices:\n";
+    
+    cout << setw(12) << "Spot Price" << " | ";
+    for (int j = 80; j <= 120; j += 4) {
+        cout << setw(8) << j << "   ";
+    }
+    cout << endl << string(140, '-');
+    cout << endl << setw(12) << "Volatility" << " | " << endl;
+    
+    int index = 0;
+
+    for (int i = -20; i <= 20; i += 4) {
+        temp_volatility = volatility + (i * 0.01);
+        cout << fixed << setprecision(2);
+        cout << setw(12) << temp_volatility << " | ";
+        cout << fixed << setprecision(4);
+        for (int j = 80; j <= 120; j += 4) {
+            cout << setw(10) << put_prices[index++] << " ";
+        }
+        cout << endl;
+    }
+}

@@ -6,6 +6,7 @@
 //
 
 #include <iostream>
+#include <iomanip>
 #include "black_scholes.h"
 
 using namespace std;
@@ -18,6 +19,8 @@ int main(int argc, const char * argv[]) {
     float volatility;
     float call_price;
     float put_price;
+    float temp_volatility;
+    float temp_spot_price;
     while (true){
         cout << "Enter the spot price (current price of the asset): ";
         cin >> spot_price;
@@ -31,8 +34,10 @@ int main(int argc, const char * argv[]) {
         cin >> volatility;
     
         black_scholes(spot_price, strike_price, time_to_expiration, risk_free_rate, volatility, &call_price, &put_price);
-        cout << "Call : " << call_price << "$" << endl;
-        cout << "Put : " << put_price << "$" << endl;
+        cout << "Call : $" << call_price << endl;
+        cout << "Put : $" << put_price << endl;
+        
+        heatmap(spot_price, strike_price, time_to_expiration, risk_free_rate, volatility);
     }
     return 0;
 }
