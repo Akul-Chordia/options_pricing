@@ -6,8 +6,8 @@
 //
 
 
-void d1_(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility, double* d1){
-    *d1 = (log(spot_price/strike_price) + (risk_free_rate + (volatility*volatility/2))*time_to_expiration)/(volatility*sqrt(time_to_expiration));
+void d1_(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility, float dividend_yield, double* d1){
+    *d1 = (log(spot_price/strike_price) + (risk_free_rate - dividend_yield + (volatility*volatility/2))*time_to_expiration)/(volatility*sqrt(time_to_expiration));
 }
 
 void d2_(float d1, float time_to_expiration, float volatility, double* d2){
@@ -37,18 +37,18 @@ double ncdf(double d) {
     return 0.5 * erfc(-d / std::sqrt(2));
 }
 
-void black_scholes(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility, float* call_price, float* put_price){
+void black_scholes(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility, float dividend_yield, float* call_price, float* put_price){
     double d1;
     double d2;
     
-    d1_(spot_price, strike_price, time_to_expiration, risk_free_rate, volatility, &d1);
+    d1_(spot_price, strike_price, time_to_expiration, risk_free_rate, volatility, dividend_yield, &d1);
     d2_(d1, time_to_expiration, volatility, &d2);
     
-    *call_price = (spot_price*ncdf(d1)) - (ncdf(d2)*strike_price*exp(-risk_free_rate*time_to_expiration));
-    *put_price = (ncdf(-d2)*strike_price*exp(-risk_free_rate*time_to_expiration)) - (spot_price*ncdf(-d1));
+    *call_price = (spot_price*ncdf(d1)*exp(-dividend_yield*time_to_expiration)) - (ncdf(d2)*strike_price*exp(-risk_free_rate*time_to_expiration));
+    *put_price = (ncdf(-d2)*strike_price*exp(-risk_free_rate*time_to_expiration)) - (spot_price*ncdf(-d1)*exp(-dividend_yield*time_to_expiration));
 }
 
-void heatmap(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility){
+void heatmap(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility, float dividend_yield){
     float temp_spot_price, temp_volatility, call_price, put_price;
     std::cout << "\nCall Option Prices:\n";
     std::vector<float> put_prices;
@@ -69,7 +69,7 @@ void heatmap(float spot_price, float strike_price, float time_to_expiration, flo
         std::cout << std::fixed << std::setprecision(4);
         for (int j = 80; j <= 120; j += 4) {
             temp_spot_price = spot_price * (j * 0.01);
-            black_scholes(temp_spot_price, strike_price, time_to_expiration, risk_free_rate, temp_volatility, &call_price, &put_price);
+            black_scholes(temp_spot_price, strike_price, time_to_expiration, risk_free_rate, temp_volatility, dividend_yield, &call_price, &put_price);
             put_prices.push_back(put_price);
             std::cout << std::setw(10) << call_price << " ";
         }
