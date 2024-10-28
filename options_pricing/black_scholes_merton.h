@@ -1,20 +1,22 @@
-//
-//  black_scholes.h
+//  black_scholes_merton.h
 //  options_pricing
-//
 //  Created by Akul Chordia on 10/26/24.
-//
+#pragma once
 
 
-void d1_(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility, float dividend_yield, double* d1){
-    *d1 = (log(spot_price/strike_price) + (risk_free_rate - dividend_yield + (volatility*volatility/2))*time_to_expiration)/(volatility*sqrt(time_to_expiration));
+void d1_(stock s, double* d1){
+    *d1 = (log(s.spot_price/s.strike_price) + (s.risk_free_rate - s.dividend_yield + (s.volatility*s.volatility/2))*s.time_to_expiration)/(s.volatility*sqrt(s.time_to_expiration));
 }
 
 void d2_(float d1, float time_to_expiration, float volatility, double* d2){
     *d2 = d1 - (volatility*sqrt(time_to_expiration));
 }
 
-// Abramowitz and Stegun’s approximation
+double ncdf(double d) {
+    return 0.5 * erfc(-d / std::sqrt(2));
+}
+
+// Abramowitz and Stegun’s approximation of ncdf
     //double ncdf(double d) {
     //    const double a[] = {0.31938153, -0.356563782, 1.781477937, -1.821255978, 1.330274429};
     //
@@ -33,22 +35,24 @@ void d2_(float d1, float time_to_expiration, float volatility, double* d2){
     //    return (d < 0) ? 1.0 - result : result;
     //}
 
-double ncdf(double d) {
-    return 0.5 * erfc(-d / std::sqrt(2));
+double pdf(double d) {
+    return (1.0 / std::sqrt(2 * M_PI)) * std::exp(-0.5 * d * d);
 }
 
-void black_scholes_merton(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility, float dividend_yield, float* call_price, float* put_price){
+void black_scholes_merton(stock s, float* call_price, float* put_price){
     double d1;
     double d2;
     
-    d1_(spot_price, strike_price, time_to_expiration, risk_free_rate, volatility, dividend_yield, &d1);
-    d2_(d1, time_to_expiration, volatility, &d2);
+    d1_(s, &d1);
+    d2_(d1, s.time_to_expiration, s.volatility, &d2);
     
-    *call_price = (spot_price*ncdf(d1)*exp(-dividend_yield*time_to_expiration)) - (ncdf(d2)*strike_price*exp(-risk_free_rate*time_to_expiration));
-    *put_price = (ncdf(-d2)*strike_price*exp(-risk_free_rate*time_to_expiration)) - (spot_price*ncdf(-d1)*exp(-dividend_yield*time_to_expiration));
+    
+    *call_price = (s.spot_price*ncdf(d1)*exp(-s.dividend_yield*s.time_to_expiration)) - (ncdf(d2)*s.strike_price*exp(-s.risk_free_rate*s.time_to_expiration));
+    *put_price = (ncdf(-d2)*s.strike_price*exp(-s.risk_free_rate*s.time_to_expiration)) - (s.spot_price*ncdf(-d1)*exp(-s.dividend_yield*s.time_to_expiration));
 }
 
-void heatmap(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility, float dividend_yield){
+
+void heatmap(stock s){
     float temp_spot_price, temp_volatility, call_price, put_price;
     std::cout << "\nCall Option Prices:\n";
     std::vector<float> put_prices;
@@ -57,19 +61,19 @@ void heatmap(float spot_price, float strike_price, float time_to_expiration, flo
     std::cout << std::setw(12) << "Spot Price" << " | ";
     std::cout << std::fixed << std::setprecision(2);
     for (int j = 80; j <= 120; j += 4) {
-        std::cout << std::setw(8) << spot_price * (j * 0.01) << "   ";
+        std::cout << std::setw(8) << s.spot_price * (j * 0.01) << "   ";
     }
     std::cout << std::endl << std::string(140, '-');
     std::cout << std::endl << std::setw(12) << "Volatility" << " | " << std::endl;
 
     for (int i = -20; i <= 20; i += 4) {
-        temp_volatility = volatility + (i * 0.01);
+        temp_volatility = s.volatility + (i * 0.01);
         std::cout << std::fixed << std::setprecision(2);
         std::cout << std::setw(12) << temp_volatility << " | ";
         std::cout << std::fixed << std::setprecision(4);
         for (int j = 80; j <= 120; j += 4) {
-            temp_spot_price = spot_price * (j * 0.01);
-            black_scholes_merton(temp_spot_price, strike_price, time_to_expiration, risk_free_rate, temp_volatility, dividend_yield, &call_price, &put_price);
+            temp_spot_price = s.spot_price * (j * 0.01);
+            black_scholes_merton(s, &call_price, &put_price);
             put_prices.push_back(put_price);
             std::cout << std::setw(10) << call_price << " ";
         }
@@ -81,7 +85,7 @@ void heatmap(float spot_price, float strike_price, float time_to_expiration, flo
     std::cout << std::setw(12) << "Spot Price" << " | ";
     std::cout << std::fixed << std::setprecision(2);
     for (int j = 80; j <= 120; j += 4) {
-        std::cout << std::setw(8) << spot_price * (j * 0.01) << "   ";
+        std::cout << std::setw(8) << s.spot_price * (j * 0.01) << "   ";
     }
     std::cout << std::endl << std::string(140, '-');
     std::cout << std::endl << std::setw(12) << "Volatility" << " | " << std::endl;
@@ -89,7 +93,7 @@ void heatmap(float spot_price, float strike_price, float time_to_expiration, flo
     int index = 0;
 
     for (int i = -20; i <= 20; i += 4) {
-        temp_volatility = volatility + (i * 0.01);
+        temp_volatility = s.volatility + (i * 0.01);
         std::cout << std::fixed << std::setprecision(2);
         std::cout << std::setw(12) << temp_volatility << " | ";
         std::cout << std::fixed << std::setprecision(4);
@@ -100,3 +104,69 @@ void heatmap(float spot_price, float strike_price, float time_to_expiration, flo
     }
 }
 
+void get_option_pricing(){
+    float call_price, put_price;
+    
+    stock stock = stockMap[ticker_input()];
+    black_scholes_merton(stock, &call_price, &put_price);
+    
+    std::cout << "Call : $" << call_price << std::endl;
+    std::cout << "Put : $" << put_price << std::endl;
+}
+
+
+void get_heatmap(){
+    stock stock = stockMap[ticker_input()];
+    heatmap(stock);
+}
+
+void display_greeks(const greeks& g) {
+    std::cout << std::setw(15) << "Greek" << std::setw(15) << "Call" << std::setw(15) << "Put" << std::endl;
+    
+    std::cout << std::string(45, '-') << std::endl;
+    
+    std::cout << std::setw(15) << "Delta : " << std::setw(15) << g.delta_call << std::setw(15) << g.delta_put << std::endl;
+    std::cout << std::setw(15) << "Gamma : " << std::setw(15) << g.gamma_call << std::setw(15) << g.gamma_put << std::endl;
+    std::cout << std::setw(15) << "Theta : " << std::setw(15) << g.theta_call << std::setw(15) << g.theta_put << std::endl;
+    std::cout << std::setw(15) << "Vega : " << std::setw(15) << g.vega_call << std::setw(15) << g.vega_put << std::endl;
+    std::cout << std::setw(15) << "Rho : " << std::setw(15) << g.rho_call << std::setw(15) << g.rho_put << std::endl;
+}
+
+void get_greeks(){
+    std::string ticker = ticker_input();
+    if (greeksMap.find(ticker) != greeksMap.end()) {
+        greeks g = greeksMap[ticker];
+        display_greeks(g);
+        
+    } else {
+        if (stockMap.find(ticker) != stockMap.end()) {
+            stock s = stockMap[ticker];
+            greeks g;
+            
+            double d1, d2;
+            d1_(s, &d1);
+            d2_(d1, s.time_to_expiration, s.volatility, &d2);
+            
+            g.delta_call = exp(-s.dividend_yield*s.time_to_expiration)*ncdf(d1);
+            g.delta_put = -exp(-s.dividend_yield*s.time_to_expiration)*ncdf(-d1);
+            
+            g.gamma_call = (exp(-s.dividend_yield*s.time_to_expiration)*pdf(d1))/s.spot_price*s.volatility*sqrt(s.time_to_expiration);
+            g.gamma_put = g.gamma_call;
+            
+            g.theta_call = (-((s.spot_price * exp(-s.dividend_yield * s.time_to_expiration) * pdf(d1) * s.volatility) / (2 * sqrt(s.time_to_expiration))) - (s.risk_free_rate * s.strike_price * exp(-s.risk_free_rate * s.time_to_expiration) *ncdf(d2)) + (s.dividend_yield*s.spot_price*exp(-s.dividend_yield*s.time_to_expiration)*ncdf(d1)))/365;
+            g.theta_put = (-((s.spot_price * exp(-s.dividend_yield * s.time_to_expiration) * pdf(d1) * s.volatility) / (2 * sqrt(s.time_to_expiration))) + (s.risk_free_rate * s.strike_price * exp(-s.risk_free_rate * s.time_to_expiration) *ncdf(-d2)) - (s.dividend_yield*s.spot_price*exp(-s.dividend_yield*s.time_to_expiration)*ncdf(-d1)))/365;
+            
+            g.vega_call = (s.spot_price*exp(-s.dividend_yield*s.time_to_expiration)*sqrt(s.time_to_expiration)*pdf(d1))/100;
+            g.vega_put = g.vega_call;
+            
+            g.rho_call = (s.spot_price*s.time_to_expiration*exp(-s.risk_free_rate*s.time_to_expiration)*ncdf(d2))/100;
+            g.rho_put = -(s.spot_price*s.time_to_expiration*exp(-s.risk_free_rate*s.time_to_expiration)*ncdf(-d2))/100;
+            
+            greeksMap[ticker] = g;
+            display_greeks(g);
+
+        } else {
+            std::cout << "Error: Ticker not found." << std::endl;
+        }
+    }
+}
