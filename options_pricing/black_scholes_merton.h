@@ -37,7 +37,7 @@ double ncdf(double d) {
     return 0.5 * erfc(-d / std::sqrt(2));
 }
 
-void black_scholes(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility, float dividend_yield, float* call_price, float* put_price){
+void black_scholes_merton(float spot_price, float strike_price, float time_to_expiration, float risk_free_rate, float volatility, float dividend_yield, float* call_price, float* put_price){
     double d1;
     double d2;
     
@@ -69,7 +69,7 @@ void heatmap(float spot_price, float strike_price, float time_to_expiration, flo
         std::cout << std::fixed << std::setprecision(4);
         for (int j = 80; j <= 120; j += 4) {
             temp_spot_price = spot_price * (j * 0.01);
-            black_scholes(temp_spot_price, strike_price, time_to_expiration, risk_free_rate, temp_volatility, dividend_yield, &call_price, &put_price);
+            black_scholes_merton(temp_spot_price, strike_price, time_to_expiration, risk_free_rate, temp_volatility, dividend_yield, &call_price, &put_price);
             put_prices.push_back(put_price);
             std::cout << std::setw(10) << call_price << " ";
         }
