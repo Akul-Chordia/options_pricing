@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <map>
 #include <string>
+#include <sstream>
+#include <ctime>
 #include "inputs.h"
 #include "stock.h"
 #include "black_scholes_merton.h"
