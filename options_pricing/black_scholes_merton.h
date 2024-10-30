@@ -53,7 +53,9 @@ void black_scholes_merton(stock s, float* call_price, float* put_price){
 
 
 void heatmap(stock s){
-    float temp_spot_price, temp_volatility, call_price, put_price;
+    float og_spot_price, og_volatility, call_price, put_price;
+    og_volatility = s.volatility;
+    og_spot_price = s.spot_price;
     std::cout << "\nCall Option Prices:\n";
     std::vector<float> put_prices;
     put_prices.reserve(11 * 11);
@@ -61,18 +63,18 @@ void heatmap(stock s){
     std::cout << std::setw(12) << "Spot Price" << " | ";
     std::cout << std::fixed << std::setprecision(2);
     for (int j = 80; j <= 120; j += 4) {
-        std::cout << std::setw(8) << s.spot_price * (j * 0.01) << "   ";
+        std::cout << std::setw(8) << og_spot_price * (j * 0.01) << "   ";
     }
     std::cout << std::endl << std::string(140, '-');
     std::cout << std::endl << std::setw(12) << "Volatility" << " | " << std::endl;
 
     for (int i = -20; i <= 20; i += 4) {
-        temp_volatility = s.volatility + (i * 0.01);
+        s.volatility = og_volatility + (i * 0.01);
         std::cout << std::fixed << std::setprecision(2);
-        std::cout << std::setw(12) << temp_volatility << " | ";
+        std::cout << std::setw(12) << s.volatility << " | ";
         std::cout << std::fixed << std::setprecision(4);
         for (int j = 80; j <= 120; j += 4) {
-            temp_spot_price = s.spot_price * (j * 0.01);
+            s.spot_price = og_spot_price * (j * 0.01);
             black_scholes_merton(s, &call_price, &put_price);
             put_prices.push_back(put_price);
             std::cout << std::setw(10) << call_price << " ";
@@ -85,7 +87,7 @@ void heatmap(stock s){
     std::cout << std::setw(12) << "Spot Price" << " | ";
     std::cout << std::fixed << std::setprecision(2);
     for (int j = 80; j <= 120; j += 4) {
-        std::cout << std::setw(8) << s.spot_price * (j * 0.01) << "   ";
+        std::cout << std::setw(8) << og_spot_price * (j * 0.01) << "   ";
     }
     std::cout << std::endl << std::string(140, '-');
     std::cout << std::endl << std::setw(12) << "Volatility" << " | " << std::endl;
@@ -93,9 +95,9 @@ void heatmap(stock s){
     int index = 0;
 
     for (int i = -20; i <= 20; i += 4) {
-        temp_volatility = s.volatility + (i * 0.01);
+        s.volatility = og_volatility + (i * 0.01);
         std::cout << std::fixed << std::setprecision(2);
-        std::cout << std::setw(12) << temp_volatility << " | ";
+        std::cout << std::setw(12) << s.volatility << " | ";
         std::cout << std::fixed << std::setprecision(4);
         for (int j = 80; j <= 120; j += 4) {
             std::cout << std::setw(10) << put_prices[index++] << " ";
