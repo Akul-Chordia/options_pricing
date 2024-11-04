@@ -57,6 +57,15 @@ void cox_ross_rubinstein(stock s, float* call_price, float* put_price){
     binomial_tree(s, up_factor, down_factor, risk_neutral_probability, call_price, put_price);
 }
 
+void jarrow_rudd(stock s, float* call_price, float* put_price){
+    delta_T(s.time_to_expiration);
+    double up_factor = exp(s.volatility*sqrt(delta_t));
+    double down_factor = 1/up_factor;
+    double risk_neutral_probability = 0.5;
+    std::cout << up_factor << down_factor;
+    binomial_tree(s, up_factor, down_factor, risk_neutral_probability, call_price, put_price);
+}
+
 
 void binomial_option_pricing(){
     float call_price, put_price;
@@ -68,7 +77,9 @@ sorry_for_using_this:
         case 1:
             cox_ross_rubinstein(stock, &call_price, &put_price);
             break;
-
+        case 2:
+            jarrow_rudd(stock, &call_price, &put_price);
+            break;
         default:
             std::cout << "Enter a valid options.\n";
             goto sorry_for_using_this;
