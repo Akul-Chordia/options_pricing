@@ -106,7 +106,7 @@ void heatmap(stock s){
     }
 }
 
-void get_option_pricing(){
+void bsm_option_pricing(){
     float call_price, put_price;
     
     stock stock = stockMap[ticker_input()];
