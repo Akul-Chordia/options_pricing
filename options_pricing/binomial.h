@@ -66,19 +66,30 @@ void jarrow_rudd(stock s, float* call_price, float* put_price){
     binomial_tree(s, up_factor, down_factor, risk_neutral_probability, call_price, put_price);
 }
 
+void leisen_reimer(stock s, float* call_price, float* put_price){
+    double moneyness = (s.spot_price == s.strike_price) ? 0.0 : -0.5 + 0.5 * (1 + (log(s.spot_price / s.strike_price) / (s.volatility * sqrt(s.time_to_expiration)))); //replace logic later
+    delta_T(s.time_to_expiration);
+    double up_factor = exp(s.volatility*sqrt(delta_t));
+    double down_factor = 1/up_factor;
+    double risk_neutral_probability = ncdf((moneyness*sqrt(delta_t) + log(s.spot_price/s.strike_price))/(s.volatility*sqrt(s.time_to_expiration))); //replace new_var
+    binomial_tree(s, up_factor, down_factor, risk_neutral_probability, call_price, put_price);
+}
 
 void binomial_option_pricing(){
     float call_price, put_price;
     
     stock stock = stockMap[ticker_input()];
 sorry_for_using_this:
-    int choice = safecin("1 : cox_ross_rubinstein");
+    int choice = safecin("1 : cox_ross_rubinstein\n2 : jarrow_rudd\n3 : leisen_reimer\n");
     switch (choice) {
         case 1:
             cox_ross_rubinstein(stock, &call_price, &put_price);
             break;
         case 2:
             jarrow_rudd(stock, &call_price, &put_price);
+            break;
+        case 3:
+            leisen_reimer(stock, &call_price, &put_price);
             break;
         default:
             std::cout << "Enter a valid options.\n";
